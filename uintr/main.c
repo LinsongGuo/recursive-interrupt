@@ -41,7 +41,7 @@ void __attribute__ ((interrupt))
 		unsigned long long vector) {
 
 	uintr_received++;
-	compute(2000 * 1000);
+	compute(1000 * 1000);
 }
 
 void *sender(void *arg) {
@@ -57,7 +57,7 @@ void *sender(void *arg) {
 		
         // printf("senduipi, %ld\n", uintr_received);
 		
-		compute(2000);
+		compute(10000);
 	}
 
 	return NULL;
