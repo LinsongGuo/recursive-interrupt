@@ -1,11 +1,11 @@
 The program can be used to test the recursion execution of uintr handlers.
 The program sends multiple user interrupts to itself.
-The uintr handler in the program takes a long time to run.
-If one uintr handler is running, the following user interrupts are blocked.
+The uintr handler in the program takes a long time (`while` for about 50ms) to run.
+If one uintr handler invocation is running, the following user interrupts are blocked.
 Therefore, the recursive execution is disabled in default.
 
 To resolve this issue, we can call `_stui()` manually in the uintr handler to unblock the following user interrupts. 
-In this way, the uintr handlers can be executed recursively.  
+In this way, the uintr handler invocations can be executed recursively.  
 
 To test the effectiveness of manual unblock, there are two modes to run the program: one without `_stui()`, the other with `_stui()`. 
 
@@ -37,7 +37,7 @@ handler 1 end
 10 UIPIs sent, 10 received
 ```
 
-This means that uintr handlers don't execute recursively.
+This means that uintr handlers are not executed recursively.
 
 #### Run with `./main stui` (with `_stui()` called in uintr handler)
 
@@ -67,4 +67,4 @@ handler 0 end
 10 UIPIs sent, 10 received
 ```
 
-This means that uintr handlers execute recursively. 
+This means that uintr handlers are executed recursively. 

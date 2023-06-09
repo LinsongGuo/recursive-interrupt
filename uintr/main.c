@@ -25,11 +25,13 @@
 #define uintr_unregister_sender(ipi_idx, flags)	syscall(__NR_uintr_unregister_sender, ipi_idx, flags)
 #define uintr_wait(flags)			syscall(__NR_uintr_wait, flags)
 
+// create 10 file descriptors.
 #define count 10
 volatile unsigned long uintr_received = 0;
 int descriptor[count];
 int stui_flag;
 
+// let the processor run for cycles.
 void compute(int cycles) {
 	unsigned long long c1 = __rdtsc(), c2 = c1;
 	while (c2 - c1 <= cycles) {
@@ -51,10 +53,12 @@ void __attribute__ ((interrupt))
 		unsigned long long vector) {
 	
 	print_start(vector);
+
 	uintr_received++;
 	if (stui_flag)
 		_stui();
-	compute(1000 * 1000 * 100);
+	compute(1000 * 1000 * 100); // make the handler run for a long time
+
 	print_end(vector);
 }
 
@@ -85,7 +89,7 @@ void send_uintrs() {
 		perror("Error creating sender thread");
 	}
 
-	compute(1000 * 1000 * 1000);
+	compute(1000 * 1000 * 2000);
 	
 	pthread_join(pt, NULL);
 	
