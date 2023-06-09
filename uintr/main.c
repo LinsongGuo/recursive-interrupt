@@ -25,8 +25,10 @@
 #define uintr_unregister_sender(ipi_idx, flags)	syscall(__NR_uintr_unregister_sender, ipi_idx, flags)
 #define uintr_wait(flags)			syscall(__NR_uintr_wait, flags)
 
+#define count 10
 volatile unsigned long uintr_received = 0;
-int descriptor;
+int descriptor[count];
+int stui_flag;
 
 void compute(int cycles) {
 	unsigned long long c1 = __rdtsc(), c2 = c1;
@@ -35,27 +37,40 @@ void compute(int cycles) {
 	}
 }
 
+void print_start(unsigned long long vector) {
+	printf("handler %llu start\n", vector);
+}
+
+void print_end(unsigned long long vector) {
+	printf("handler %llu end\n", vector);
+}
+
 void __attribute__ ((interrupt))
      __attribute__((target("general-regs-only", "inline-all-stringops")))
      ui_handler(struct __uintr_frame *ui_frame,
 		unsigned long long vector) {
-
+	
+	print_start(vector);
 	uintr_received++;
-	compute(1000 * 1000);
+	if (stui_flag)
+		_stui();
+	compute(1000 * 1000 * 100);
+	print_end(vector);
 }
 
 void *sender(void *arg) {
-	
-	int uipi_index = uintr_register_sender(descriptor, 0);
-	if (uipi_index < 0)
-		perror("Sender register error\n");
+	int i;
+	int uipi_index[count];
+	for (i = 0; i < count; ++i) {	 
+		uipi_index[i] = uintr_register_sender(descriptor[i], 0);
+		if (uipi_index[i] < 0)
+			perror("Sender register error\n");
+	}
 
-	int i, count = *((int*) arg);
 	for (i = 0; i < count; ++i) {
 		// Send User IPI
-		_senduipi(uipi_index);
-		
-        // printf("senduipi, %ld\n", uintr_received);
+		// printf("senduipi %d\n", uipi_index[i]);
+		_senduipi(uipi_index[i]);
 		
 		compute(10000);
 	}
@@ -64,11 +79,9 @@ void *sender(void *arg) {
 }
 
 void send_uintrs() {
-    int count = 10;
-
 	pthread_t pt;
 	// Create another thread
-	if (pthread_create(&pt, NULL, &sender, &count)) {
+	if (pthread_create(&pt, NULL, &sender, NULL)) {
 		perror("Error creating sender thread");
 	}
 
@@ -77,21 +90,24 @@ void send_uintrs() {
 	pthread_join(pt, NULL);
 	
 	printf("%d UIPIs sent, %ld received\n", count, uintr_received);
-
-	close(descriptor);
 }
 
 int main(int argc, char* argv[]) {
+	stui_flag = argc > 1 && strcmp(argv[1], "stui") == 0 ? 1 : 0;
+
 	// Register uintr handler.
 	int handler = uintr_register_handler(ui_handler, 0);
 	if (handler) {
 		perror("Interrupt handler register error\n");
 	}
 
-	// Create a new uintrfd file descriptor.
-	descriptor = uintr_create_fd(0, 0);
-	if (descriptor < 0)
-		perror("Interrupt vector allocation error\n");
+	// Create new uintrfd file descriptors.
+	int i;
+	for (i = 0; i < count; ++i) {
+		descriptor[i] = uintr_create_fd(i, 0);
+		if (descriptor[i] < 0)
+			perror("Interrupt vector allocation error\n");
+	}
 
 	// Enable interrupts
 	_stui();
