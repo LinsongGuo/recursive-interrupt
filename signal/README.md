@@ -9,7 +9,7 @@ In this way, the singal handlers can be executed recursively.
 
 To test the effectiveness of manual unblock, there are two modes to run the program: one without unblock, the other with unblock. 
 
-#### run with `./main` (without manual unblock in signal handler)
+#### Run with `./main` (without manual unblock in signal handler)
 
 The output will be like 
 
@@ -24,7 +24,7 @@ signal handler ends
 ```
 This means that signal handlers don't execute recursively.
 
-#### run with `./main unblock` (with mannul unblock in signal handler)
+#### Run with `./main unblock` (with mannul unblock in signal handler)
 
 The output will be like
 
@@ -37,6 +37,7 @@ signal handler starts
 signal handler starts
 signal handler starts
 signal handler starts
+...
 Segmentation fault
 ```
 

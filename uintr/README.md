@@ -9,7 +9,7 @@ In this way, the uintr handlers can be executed recursively.
 
 To test the effectiveness of manual unblock, there are two modes to run the program: one without `_stui()`, the other with `_stui()`. 
 
-#### - Run with `./main` (without `_stui()` called in uintr handler)
+#### Run with `./main` (without `_stui()` called in uintr handler)
 
 The output will be like 
 
@@ -39,7 +39,7 @@ handler 1 end
 
 This means that uintr handlers don't execute recursively.
 
-#### - Run with `./main stui` (with `_stui()` called in uintr handler)
+#### Run with `./main stui` (with `_stui()` called in uintr handler)
 
 The output will be like
 
